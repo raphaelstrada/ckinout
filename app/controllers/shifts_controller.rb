@@ -8,7 +8,25 @@ class ShiftsController < ApplicationController
   def index
     # @shifts = Shift.all
     # render json: @shifts
-    json_response(@employee.shifts) 
+    @newShifts = [];
+    
+    @employee.shifts.each do |shift|
+      if shift.uploads.attached?
+        if shift.uploads.attachments().length <= 1
+          snapshot_blob_from = shift.snapshot_from.present? ? url_for( shift.uploads.attachments().find(shift.snapshot_from) ) : ""
+          snapshot_blob_to = ""
+          # logger.debug "snapshot_blob_from #{shift.snapshot_from.present?}"
+        else
+          snapshot_blob_from = shift.snapshot_from.present? ? url_for( shift.uploads.attachments().find(shift.snapshot_from) ) : ""
+          snapshot_blob_to = shift.snapshot_to.present? ? url_for( shift.uploads.attachments().find(shift.snapshot_to) ) : ""
+        end
+        @newShift = @newShift.as_json.merge("snapshot_blob_from" => snapshot_blob_from, "snapshot_blob_to" => snapshot_blob_to) 
+      else
+        @newShift = shift
+      end
+      @newShifts << @newShift
+    end
+    json_response(@newShifts) 
     
   end
 
